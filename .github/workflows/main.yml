@@ -141,3 +141,15 @@ jobs:
           Write-Host "✅ 55 минут прошло, завершаем работу для перезапуска по cron" -ForegroundColor Green
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+      - name: Final resource summary
+        if: always()
+        run: |
+          Write-Host "📊 ИТОГОВАЯ СТАТИСТИКА ЗАПУСКА" -ForegroundColor Cyan
+          $cpu = (Get-Counter "\Processor(_Total)\% Processor Time").CounterSamples.CookedValue
+          $ram = (Get-Counter "\Memory\Available MBytes").CounterSamples.CookedValue
+          $totalRAM = 16012  # Из вашего top
+          $ramUsed = $totalRAM - $ram
+          Write-Host "CPU пиковая: $([math]::Round($cpu, 1))%"
+          Write-Host "RAM использовано: $([math]::Round($ramUsed/1024, 2)) GB"
+          Write-Host "RAM свободно: $([math]::Round($ram/1024, 2)) GB"
