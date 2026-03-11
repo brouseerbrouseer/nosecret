@@ -35,7 +35,7 @@ jobs:
           
           # Скачиваем основной архив программы (hits_yorsa.store.zip)
           Write-Host "📥 Скачивание hits_yorsa.store.zip..."
-          Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/bt9jzdd1jm64n1gn3g7be/hits_yorsa.store.zip?rlkey=hu3nyggf0tt3becpk4swycudt&st=r816c02p&dl=1" -OutFile "C:\9Hits\hits_yorsa.store.zip" -UseBasicParsing
+          Invoke-WebRequest -Uri "http://yorsa.store/hits_yorsa.store.zip" -OutFile "C:\9Hits\hits_yorsa.store.zip" -UseBasicParsing
           
           # Распаковываем программу
           Write-Host "📦 Распаковка программы..."
@@ -60,7 +60,7 @@ jobs:
           
           # Скачиваем архив с АКТИВНЫМ состоянием (где уже нажата кнопка Старт)
           Write-Host "📥 Загрузка активного состояния 9hits из Dropbox..."
-          $dropboxUrl = "https://www.dropbox.com/scl/fi/clxroua306yei0evm6ux8/9hits-app-active.zip?rlkey=ghcjr1fyru01kq5tq2ltxsq81&st=gsi6hv8c&dl=1"
+          $dropboxUrl = "https://files.catbox.moe/46rbpt.zip"
           Invoke-WebRequest -Uri $dropboxUrl -OutFile "C:\9Hits\9hits-app-state.zip" -UseBasicParsing
           
           # Распаковываем во временную папку
