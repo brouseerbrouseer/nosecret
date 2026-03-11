@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -65,20 +69,24 @@ jobs:
           Remove-Item -Path "$env:LOCALAPPDATA\9hits-app" -Recurse -Force -ErrorAction SilentlyContinue
           $localAppData = "$env:LOCALAPPDATA\9hits-app"
           New-Item -ItemType Directory -Path $localAppData -Force
+
           if (!(Test-Path "C:\9Hits\9hits-app-state.zip")) {
             Write-Host "📥 Загрузка активного состояния 9hits..."
             Invoke-WebRequest -Uri "https://files.catbox.moe/46rbpt.zip" -OutFile "C:\9Hits\9hits-app-state.zip" -UseBasicParsing
           } else {
             Write-Host "⚡ 9hits-app-state.zip уже есть (cache)"
           }
+
           $tempDir = "C:\9Hits\temp_state"
           New-Item -ItemType Directory -Path $tempDir -Force
           Expand-Archive -Path "C:\9Hits\9hits-app-state.zip" -DestinationPath $tempDir -Force
+
           if (Test-Path "$tempDir\9hits-app") {
             Copy-Item -Path "$tempDir\9hits-app\*" -Destination $localAppData -Recurse -Force
           } else {
             Copy-Item -Path "$tempDir\*" -Destination $localAppData -Recurse -Force
           }
+
           Remove-Item -Path $tempDir -Recurse -Force
           Write-Host "✅ Состояние восстановлено"
 
@@ -97,12 +105,17 @@ jobs:
         run: |
           taskkill /F /IM cloudflared.exe 2>$null
           Start-Process -NoNewWindow -FilePath ".\cloudflared.exe" -ArgumentList "tunnel run --token $env:CF_TOKEN --protocol http2"
+
           $endTime = (Get-Date).AddMinutes(55)
+
           while ((Get-Date) -lt $endTime) {
+
             $cf = Get-Process cloudflared -ErrorAction SilentlyContinue
+
             if (-not $cf) {
               Start-Process -NoNewWindow -FilePath ".\cloudflared.exe" -ArgumentList "tunnel run --token $env:CF_TOKEN --protocol http2"
             }
+
             Start-Sleep -Seconds 30
           }
         env:
@@ -133,6 +146,7 @@ jobs:
 
           $cpuSamples = Get-Counter "\Processor(_Total)\% Processor Time" -SampleInterval 1 -MaxSamples 5
           $cpuValues = $cpuSamples.CounterSamples | ForEach-Object { $_.CookedValue }
+
           $cpuAvg = [math]::Round(($cpuValues | Measure-Object -Average).Average, 1)
           $cpuMax = [math]::Round(($cpuValues | Measure-Object -Maximum).Maximum, 1)
 
