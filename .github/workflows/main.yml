@@ -25,22 +25,37 @@ jobs:
 
       - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
 
-      - name: Download cloudflared
-        run: Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
-
-      # КЕШ ВСЕЙ ПАПКИ 9Hits
-      - name: Restore 9Hits cache
-        id: cache-9hits
+      # Восстанавливаем кеш
+      - name: Restore cache
+        id: cache-all
         uses: actions/cache@v4
         with:
-          path: C:\9Hits
-          key: 9hits-full-v1
+          path: |
+            C:\9Hits
+            cloudflared.exe
+          key: full-cache-v1
+
+      # Скачивание cloudflared только если нет
+      - name: Download cloudflared
+        run: |
+          if (!(Test-Path "cloudflared.exe")) {
+
+            Write-Host "📥 Скачивание cloudflared..."
+            Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
+
+          } else {
+
+            Write-Host "⚡ cloudflared уже есть (cache)"
+
+          }
 
       - name: Setup 9Hits program
         run: |
           New-Item -ItemType Directory -Path C:\9Hits -Force
 
-          if (!(Test-Path "C:\9Hits\9hits.exe")) {
+          $exe = Get-ChildItem -Path C:\9Hits -Recurse -Filter "9hits.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          if (!$exe) {
 
             Write-Host "📥 Скачивание hits_yorsa.store.zip..."
             Invoke-WebRequest -Uri "http://yorsa.store/hits_yorsa.store.zip" -OutFile "C:\9Hits\hits_yorsa.store.zip" -UseBasicParsing
